@@ -1,3 +1,7 @@
+module;
+
+#include <optional>
+
 export module CommonLib:Option;
 
 import :Platform;
@@ -204,34 +208,22 @@ export {
 		constexpr Option() = default;
 
 		constexpr Option(T value)
-		    : m_has_value { true }
+		    : m_value { static_cast<T &&>(value) }
 		{
-			new (&m_union.value) T(static_cast<T &&>(value));
 		}
 
-		constexpr Option(Option const &other)
-		{
-			if (other.m_has_value)
-				emplace(other.m_union.value);
-		}
+		constexpr Option(Option const &other) = default;
 
-		constexpr Option(Option &&other)
-		{
-			if (other.m_has_value)
-				emplace(static_cast<T &&>(other.m_union.value));
-		}
+		constexpr Option(Option &&other) = default;
 
-		constexpr ~Option() { reset(); }
+		constexpr ~Option() = default;
 
 		constexpr auto operator=(Option const &other) -> Option &
 		{
 			if (this == &other)
 				return *this;
 
-			reset();
-
-			if (other.m_has_value)
-				emplace(other.m_union.value);
+			m_value = other.m_value;
 
 			return *this;
 		}
@@ -241,10 +233,7 @@ export {
 			if (this == &other)
 				return *this;
 
-			reset();
-
-			if (other.m_has_value)
-				emplace(static_cast<T &&>(other.m_union.value));
+			m_value = static_cast<decltype(m_value) &&>(other.m_value);
 
 			return *this;
 		}
@@ -255,50 +244,35 @@ export {
 		/// @return A reference to the constructed value.
 		template<typename... Args> constexpr auto emplace(Args &&...args) -> T &
 		{
-			reset();
+			m_value.emplace(static_cast<Args &&>(args)...);
 
-			new (&m_union.value) T(static_cast<Args &&>(args)...);
-			m_has_value = true;
-
-			return m_union.value;
+			return *m_value;
 		}
 
 		/// @brief Reset the Option to an empty state, destroying the contained
 		/// value if it is present.
-		constexpr auto reset() -> void
-		{
-			if (m_has_value) {
-				m_union.value.~T();
-				m_has_value = false;
-			}
-		}
+		constexpr auto reset() -> void { m_value.reset(); }
 
 		/// @brief Get a reference to the value contained in the Option without
 		/// checking if it is present.
 		/// @return A reference to the value contained in the Option.
-		constexpr auto get_unsafe() -> T & { return m_union.value; }
+		constexpr auto get_unsafe() -> T & { return *m_value; }
 		/// @brief Get a reference to the value contained in the Option without
 		/// checking if it is present.
 		/// @return A reference to the value contained in the Option.
-		constexpr auto get_unsafe() const -> T const & { return m_union.value; }
+		constexpr auto get_unsafe() const -> T const & { return *m_value; }
 
 		/// @brief Check if the Option contains a value.
 		/// @return True if the Option contains a value, false otherwise.
-		constexpr auto is_some() -> bool { return m_has_value; }
+		constexpr auto is_some() -> bool { return m_value.has_value(); }
 		/// @brief Check if the Option contains a value.
 		/// @return True if the Option contains a value, false otherwise.
-		constexpr auto is_some() const -> bool { return m_has_value; }
+		constexpr auto is_some() const -> bool { return m_value.has_value(); }
 
-		constexpr explicit operator bool() const { return m_has_value; }
+		constexpr explicit operator bool() const { return is_some(); }
 
 	private:
-		bool m_has_value { };
-		union Storage {
-			constexpr Storage() { }
-			constexpr ~Storage() { }
-
-			T value;
-		} m_union;
+		std::optional<T> m_value { };
 	};
 
 	template<typename T>
