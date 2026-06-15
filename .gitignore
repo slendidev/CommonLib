@@ -1,4 +1,4 @@
 .devenv/
 .direnv/
 .pre-commit-config.yaml
-[Bbuild]*
+build
