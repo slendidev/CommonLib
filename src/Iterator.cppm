@@ -2,6 +2,7 @@ export module CommonLib:Iterator;
 
 import :Option;
 import :Pair;
+import :Types;
 import :TypeTraits;
 import :Utility;
 

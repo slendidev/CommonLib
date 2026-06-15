@@ -25,9 +25,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install LLVM
+      - name: Install LLVM 22
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl lsb-release gnupg
+          curl -fsSL https://apt.llvm.org/llvm.sh -o /tmp/llvm.sh
+          sudo bash /tmp/llvm.sh 22
 
       - name: Install LLVM
         if: runner.os == 'macOS'
@@ -36,8 +40,8 @@ jobs:
       - name: Set compiler env
         if: runner.os == 'Linux'
         run: |
-          echo "CC=clang" >> "$GITHUB_ENV"
-          echo "CXX=clang++" >> "$GITHUB_ENV"
+          echo "CC=clang-22" >> "$GITHUB_ENV"
+          echo "CXX=clang++-22" >> "$GITHUB_ENV"
 
       - name: Set compiler env
         if: runner.os == 'macOS'
