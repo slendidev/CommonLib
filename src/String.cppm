@@ -1,10 +1,14 @@
 export module CommonLib:String;
 
 import :ArrayList;
+import :Errors;
 import :Iterator;
 import :StringOps;
 import :StringView;
+import :Result;
+import :Platform;
 import :Types;
+import :Utility;
 
 export {
 	namespace CL {
@@ -13,6 +17,8 @@ export {
 	/// @tparam CharTypeT The type of the characters in the string.
 	template<typename CharTypeT>
 	struct BaseString : detail::StringOps<BaseString<CharTypeT>, CharTypeT> {
+		struct RawTag { };
+
 		struct ByteIter : Iterator<ByteIter> {
 			typename ArrayList<CharTypeT>::Iter iter;
 			usize remaining;
@@ -59,28 +65,60 @@ export {
 			}
 		};
 
-		BaseString() { m_data.push('\0'); }
+		BaseString()
+		{
+			auto result { make() };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
+
+			*this = move(result.unwrap());
+		}
 
 		BaseString(CharTypeT const *cstring)
 		{
-			BaseStringView<CharTypeT> string { cstring };
+			auto result { make(cstring) };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
 
-			m_data.reserve(string.size() + 1);
-
-			for (usize i { }; i < string.size(); ++i)
-				m_data.push(string.data()[i]);
-
-			m_data.push('\0');
+			*this = move(result.unwrap());
 		}
 
 		explicit BaseString(BaseStringView<CharTypeT> const &string)
 		{
-			m_data.reserve(string.size() + 1);
+			auto result { make(string) };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
+
+			*this = move(result.unwrap());
+		}
+
+		static auto make() -> Result<BaseString, Errors>
+		{
+			return make(BaseStringView<CharTypeT> { });
+		}
+
+		static auto make(CharTypeT const *cstring) -> Result<BaseString, Errors>
+		{
+			return make(BaseStringView<CharTypeT> { cstring });
+		}
+
+		static auto make(BaseStringView<CharTypeT> const &string)
+		    -> Result<BaseString, Errors>
+		{
+			auto data_result { ArrayList<CharTypeT>::make(string.size() + 1) };
+			if (data_result.is_err())
+				return Result<BaseString, Errors>::Err(
+				    data_result.unwrap_err());
+
+			BaseString result { RawTag { } };
+			result.m_data = move(data_result.unwrap());
 
 			for (usize i { }; i < string.size(); ++i)
-				m_data.push(string.data()[i]);
+				result.m_data.push(string.data()[i]);
 
-			m_data.push('\0');
+			result.m_data.push('\0');
+
+			return Result<BaseString, Errors>::Ok(move(result));
 		}
 
 		/// @brief Get an iterator over the bytes in the string.
@@ -171,7 +209,9 @@ export {
 		auto append(BaseStringView<CharTypeT> const &string) -> void
 		{
 			m_data.pop();
-			m_data.reserve(size() + string.size() + 1);
+			auto reserve_result { m_data.reserve(size() + string.size() + 1) };
+			if (reserve_result.is_err())
+				panic_error(reserve_result.unwrap_err());
 
 			for (usize i { }; i < string.size(); ++i)
 				m_data.push(string.data()[i]);
@@ -202,6 +242,8 @@ export {
 		}
 
 	private:
+		explicit BaseString(RawTag) { }
+
 		ArrayList<CharTypeT> m_data;
 	};
 

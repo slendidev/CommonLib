@@ -142,13 +142,17 @@ TEST(Containers, ArrayAndSpan)
 
 	Span<int> moved = std::move(copied);
 	EXPECT_EQ(moved[0], 1);
-	EXPECT_EQ(copied.size(), 0u);
+	EXPECT_EQ(copied.size(), 3u);
 }
 
 TEST(Containers, ArrayListAndLinkedList)
 {
 	ArrayList<int> list;
 	EXPECT_TRUE(list.is_empty());
+
+	auto made_list { ArrayList<int>::make(4) };
+	ASSERT_TRUE(made_list);
+	EXPECT_GE(made_list.unwrap().capacity(), 4u);
 
 	list.push(1);
 	list.emplace(2);
@@ -225,6 +229,9 @@ TEST(Strings, ViewStringAndFixedString)
 	EXPECT_EQ(rune_count, 3u);
 
 	String text { "hello" };
+	auto made_text { String::make("hello") };
+	ASSERT_TRUE(made_text);
+	EXPECT_EQ(made_text.unwrap(), StringView("hello"));
 	text += StringView(" world");
 	text += '!';
 	EXPECT_EQ(text, StringView("hello world!"));
@@ -331,6 +338,9 @@ TEST(Functional, VariantAndError)
 
 	auto popping { ErasedError::from(ErrorsV::PoppingEmptyList { }) };
 	EXPECT_EQ(popping.message(), StringView("Popping empty list"));
+
+	auto oom { ErasedError::from(ErrorsV::OutOfMemory { }) };
+	EXPECT_EQ(oom.message(), StringView("Out of memory"));
 }
 
 TEST(Containers, HashMapBitArrayBitListAndQueue)

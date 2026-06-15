@@ -1,7 +1,7 @@
 export module CommonLib:HashMap;
 
 import :ArrayList;
-import :Error;
+import :Errors;
 import :InitializerList;
 
 export {
@@ -295,7 +295,9 @@ export {
 				new_bucket_count = InitialBucketCount;
 
 			ArrayList<Bucket> new_buckets;
-			new_buckets.reserve(new_bucket_count);
+			auto reserve_result { new_buckets.reserve(new_bucket_count) };
+			if (reserve_result.is_err())
+				panic_error(reserve_result.unwrap_err());
 
 			for (usize i { }; i < new_bucket_count; ++i)
 				new_buckets.emplace();
@@ -319,7 +321,9 @@ export {
 
 		auto init_buckets(usize count) -> void
 		{
-			m_buckets.reserve(count);
+			auto reserve_result { m_buckets.reserve(count) };
+			if (reserve_result.is_err())
+				panic_error(reserve_result.unwrap_err());
 
 			for (usize i { }; i < count; ++i)
 				m_buckets.emplace();

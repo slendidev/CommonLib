@@ -4,12 +4,15 @@ module;
 
 export module CommonLib:ArrayList;
 
+import :Errors;
 import :InitializerList;
 import :Iterator;
 import :Option;
 import :Platform;
+import :Result;
 import :Span;
 import :Types;
+import :Utility;
 
 export {
 	namespace CL {
@@ -65,9 +68,11 @@ export {
 
 		ArrayList(ArrayList const &other)
 		{
-			reserve(other.m_size);
-			for (usize i = 0; i < other.m_size; ++i)
-				emplace(other.m_data[i]);
+			auto result { make(other) };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
+
+			*this = move(result.unwrap());
 		}
 
 		ArrayList(ArrayList &&other)
@@ -82,9 +87,55 @@ export {
 
 		ArrayList(InitializerList<T> init)
 		{
-			reserve(init.size());
+			auto result { make(init) };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
+
+			*this = move(result.unwrap());
+		}
+
+		static auto make() -> Result<ArrayList, Errors>
+		{
+			return Result<ArrayList, Errors>::Ok(ArrayList { });
+		}
+
+		static auto make(usize capacity) -> Result<ArrayList, Errors>
+		{
+			ArrayList list { };
+			auto reserve_result { list.reserve(capacity) };
+			if (reserve_result.is_err())
+				return Result<ArrayList, Errors>::Err(
+				    reserve_result.unwrap_err());
+
+			return Result<ArrayList, Errors>::Ok(move(list));
+		}
+
+		static auto make(ArrayList const &other) -> Result<ArrayList, Errors>
+		{
+			ArrayList list { };
+			auto reserve_result { list.reserve(other.m_size) };
+			if (reserve_result.is_err())
+				return Result<ArrayList, Errors>::Err(
+				    reserve_result.unwrap_err());
+
+			for (usize i = 0; i < other.m_size; ++i)
+				list.emplace(other.m_data[i]);
+
+			return Result<ArrayList, Errors>::Ok(move(list));
+		}
+
+		static auto make(InitializerList<T> init) -> Result<ArrayList, Errors>
+		{
+			ArrayList list { };
+			auto reserve_result { list.reserve(init.size()) };
+			if (reserve_result.is_err())
+				return Result<ArrayList, Errors>::Err(
+				    reserve_result.unwrap_err());
+
 			for (auto const &value : init)
-				emplace(value);
+				list.emplace(value);
+
+			return Result<ArrayList, Errors>::Ok(move(list));
 		}
 
 		~ArrayList()
@@ -99,7 +150,9 @@ export {
 				return *this;
 
 			clear();
-			reserve(other.m_size);
+			auto reserve_result { reserve(other.m_size) };
+			if (reserve_result.is_err())
+				panic_error(reserve_result.unwrap_err());
 
 			for (usize i = 0; i < other.m_size; ++i)
 				emplace(other.m_data[i]);
@@ -158,7 +211,9 @@ export {
 		/// @param args The arguments to construct the value.
 		template<typename... Args> auto emplace(Args &&...args) -> T &
 		{
-			ensure_capacity(m_size + 1);
+			auto ensure_result { ensure_capacity(m_size + 1) };
+			if (ensure_result.is_err())
+				panic_error(ensure_result.unwrap_err());
 
 			new (&m_data[m_size]) T(static_cast<Args &&>(args)...);
 			return m_data[m_size++];
@@ -185,23 +240,9 @@ export {
 
 		/// @brief Ensure that the array list has at least the specified
 		/// capacity.
-		auto reserve(usize capacity) -> void
+		auto reserve(usize capacity) -> Result<void, Errors>
 		{
-			if (capacity <= m_capacity)
-				return;
-
-			T *new_data = allocate(capacity);
-
-			for (usize i = 0; i < m_size; ++i)
-				new (&new_data[i]) T(static_cast<T &&>(m_data[i]));
-
-			for (usize i = 0; i < m_size; ++i)
-				m_data[i].~T();
-
-			deallocate(m_data);
-
-			m_data = new_data;
-			m_capacity = capacity;
+			return ensure_capacity(capacity);
 		}
 
 		/// @brief Remove the element at the specified index from the array
@@ -339,22 +380,38 @@ export {
 	protected:
 		static auto allocate(usize capacity) -> T *
 		{
-			return static_cast<T *>(::operator new(sizeof(T) * capacity));
+			return static_cast<T *>(
+			    ::operator new(sizeof(T) * capacity, std::nothrow));
 		}
 
 		static auto deallocate(T *data) -> void { ::operator delete(data); }
 
-		auto ensure_capacity(usize wanted) -> void
+		auto ensure_capacity(usize wanted) -> Result<void, Errors>
 		{
 			if (wanted <= m_capacity)
-				return;
+				return Result<void, Errors>::Ok();
 
 			usize new_capacity = m_capacity ? m_capacity * 2 : 8;
 
 			if (new_capacity < wanted)
 				new_capacity = wanted;
 
-			reserve(new_capacity);
+			T *new_data = allocate(new_capacity);
+			if (new_data == nullptr)
+				return Result<void, Errors>::Err(ErrorsV::OutOfMemory { });
+
+			for (usize i = 0; i < m_size; ++i)
+				new (&new_data[i]) T(static_cast<T &&>(m_data[i]));
+
+			for (usize i = 0; i < m_size; ++i)
+				m_data[i].~T();
+
+			deallocate(m_data);
+
+			m_data = new_data;
+			m_capacity = new_capacity;
+
+			return Result<void, Errors>::Ok();
 		}
 
 		T *m_data { nullptr };

@@ -2,7 +2,7 @@ export module CommonLib:BitList;
 
 import :ArrayList;
 import :Math;
-import :Error;
+import :Errors;
 
 export {
 
@@ -89,10 +89,10 @@ export {
 			return set(index);
 		}
 
-		constexpr auto reserve(usize size) -> void
+		constexpr auto reserve(usize size) -> Result<void, Errors>
 		{
 			auto const bytes { Math::ceil(static_cast<double>(size) / 8.0) };
-			m_data.reserve(static_cast<usize>(bytes));
+			return m_data.reserve(static_cast<usize>(bytes));
 		}
 
 		constexpr auto is_empty() const -> bool { return size() == 0; }

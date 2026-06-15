@@ -1,5 +1,7 @@
 export module CommonLib:Error;
 
+export import :Errors;
+
 import :Result;
 import :String;
 import :TypeTraits;
@@ -8,8 +10,6 @@ import :Variant;
 
 export {
 	namespace CL {
-
-	template<typename... Es> using Error = Variant<Es...>;
 
 	struct ErasedError;
 
@@ -84,45 +84,6 @@ export {
 	private:
 		String m_message;
 	};
-
-	namespace ErrorsV {
-	struct HashMapDuplicateKeyError { };
-	struct InvalidIndex { };
-	struct PoppingEmptyList { };
-	}
-
-	namespace detail::adl {
-
-	inline auto to_display_string(ErrorsV::HashMapDuplicateKeyError const &)
-	    -> String
-	{
-		return String("HashMap duplicate key");
-	}
-
-	inline auto to_display_string(ErrorsV::InvalidIndex const &) -> String
-	{
-		return String("Invalid index");
-	}
-
-	inline auto to_display_string(ErrorsV::PoppingEmptyList const &) -> String
-	{
-		return String("Popping empty list");
-	}
-
-	inline auto to_display_string(Error<ErrorsV::HashMapDuplicateKeyError,
-	    ErrorsV::InvalidIndex, ErrorsV::PoppingEmptyList> const &error)
-	    -> String
-	{
-		String result;
-		error.visit(
-		    [&](auto const &value) { result = to_display_string(value); });
-		return result;
-	}
-
-	}
-
-	using Errors = Error<ErrorsV::HashMapDuplicateKeyError,
-	    ErrorsV::InvalidIndex, ErrorsV::PoppingEmptyList>;
 
 	namespace detail {
 

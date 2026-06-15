@@ -101,6 +101,7 @@ TEST(Collections, Span)
 	EXPECT_EQ(copy[0], 1);
 	Span<int> moved { std::move(copy) };
 	EXPECT_EQ(moved[2], 3);
+	EXPECT_EQ(copy[1], 2);
 
 	Span<int> assigned { };
 	assigned = view;
@@ -109,12 +110,8 @@ TEST(Collections, Span)
 	assigned = std::move(moved_source);
 	EXPECT_EQ(assigned[0], 1);
 
-	Span<int> owned { InitializerList<int> { 7, 8, 9 } };
-	EXPECT_EQ(owned.size(), 3u);
-	EXPECT_EQ(owned[2], 9);
-	owned = Span<int>(raw, 3);
-	EXPECT_EQ(owned.size(), 3u);
-	EXPECT_EQ(owned[0], 1);
+	EXPECT_EQ(moved_source.size(), 3u);
+	EXPECT_EQ(moved_source[2], 3);
 }
 
 TEST(Collections, ArrayList)

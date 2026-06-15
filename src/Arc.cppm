@@ -1,7 +1,14 @@
+module;
+
+#include <new>
+
 export module CommonLib:Arc;
 
+import :Errors;
 import :Atomic;
+import :Platform;
 import :Types;
+import :Result;
 import :TypeTraits;
 import :Utility;
 
@@ -14,11 +21,45 @@ export {
 	template<typename T> struct Arc {
 		template<typename... Args>
 		requires(!(sizeof...(Args) == 1
-		            && (SameAs<RemoveConstRef<Args>, Arc<T>> || ...)))
+		    && (SameAs<RemoveConstRef<Args>, Arc<T>> || ...)))
 		explicit Arc(Args &&...args)
-		    : m_ptr { new T(forward<Args>(args)...) }
-		    , m_refs { new Atomic<usize>(1) }
 		{
+			auto result { make(forward<Args>(args)...) };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
+
+			*this = move(result.unwrap());
+		}
+
+		static auto make() -> Result<Arc, Errors>
+		{
+			return Result<Arc, Errors>::Ok(Arc(RawTag { }));
+		}
+
+		template<typename... Args>
+		requires(!(sizeof...(Args) == 1
+		    && (SameAs<RemoveConstRef<Args>, Arc<T>> || ...)))
+		static auto make(Args &&...args) -> Result<Arc, Errors>
+		{
+			void *ptr_mem = ::operator new(sizeof(T), std::nothrow);
+			if (ptr_mem == nullptr)
+				return Result<Arc, Errors>::Err(ErrorsV::OutOfMemory { });
+
+			T *ptr = new (ptr_mem) T(forward<Args>(args)...);
+
+			void *refs_mem
+			    = ::operator new(sizeof(Atomic<usize>), std::nothrow);
+			if (refs_mem == nullptr) {
+				::operator delete(ptr_mem);
+				return Result<Arc, Errors>::Err(ErrorsV::OutOfMemory { });
+			}
+
+			Atomic<usize> *refs = new (refs_mem) Atomic<usize>(1);
+
+			Arc arc(RawTag { });
+			arc.m_ptr = ptr;
+			arc.m_refs = refs;
+			return Result<Arc, Errors>::Ok(move(arc));
 		}
 
 		~Arc() { release(); }
@@ -88,6 +129,10 @@ export {
 		}
 
 	private:
+		struct RawTag { };
+
+		explicit Arc(RawTag) { }
+
 		auto release() -> void
 		{
 			if (!m_refs)

@@ -1,6 +1,13 @@
+module;
+
+#include <new>
+
 export module CommonLib:Rc;
 
+import :Errors;
+import :Platform;
 import :Types;
+import :Result;
 import :TypeTraits;
 import :Utility;
 
@@ -11,13 +18,48 @@ export {
 	/// of a value of type T.
 	/// @tparam T The type of the value being managed by the Rc.
 	template<typename T> struct Rc {
+		struct RawTag { };
+
 		template<typename... Args>
 		requires(!(sizeof...(Args) == 1
-		            && (SameAs<RemoveConstRef<Args>, Rc<T>> || ...)))
+		    && (SameAs<RemoveConstRef<Args>, Rc<T>> || ...)))
 		explicit Rc(Args &&...args)
-		    : m_ptr { new T(forward<Args>(args)...) }
-		    , m_refs { new usize(1) }
 		{
+			auto result { make(forward<Args>(args)...) };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
+
+			*this = move(result.unwrap());
+		}
+
+		static auto make() -> Result<Rc, Errors>
+		{
+			return Result<Rc, Errors>::Ok(Rc(RawTag { }));
+		}
+
+		template<typename... Args>
+		requires(!(sizeof...(Args) == 1
+		    && (SameAs<RemoveConstRef<Args>, Rc<T>> || ...)))
+		static auto make(Args &&...args) -> Result<Rc, Errors>
+		{
+			void *ptr_mem = ::operator new(sizeof(T), std::nothrow);
+			if (ptr_mem == nullptr)
+				return Result<Rc, Errors>::Err(ErrorsV::OutOfMemory { });
+
+			T *ptr = new (ptr_mem) T(forward<Args>(args)...);
+
+			void *refs_mem = ::operator new(sizeof(usize), std::nothrow);
+			if (refs_mem == nullptr) {
+				::operator delete(ptr_mem);
+				return Result<Rc, Errors>::Err(ErrorsV::OutOfMemory { });
+			}
+
+			usize *refs = new (refs_mem) usize(1);
+
+			Rc rc(RawTag { });
+			rc.m_ptr = ptr;
+			rc.m_refs = refs;
+			return Result<Rc, Errors>::Ok(move(rc));
 		}
 
 		~Rc() { release(); }
@@ -84,6 +126,8 @@ export {
 		auto ref_count() const -> usize { return m_refs ? *m_refs : 0; }
 
 	private:
+		explicit Rc(RawTag) { }
+
 		auto release() -> void
 		{
 			if (!m_refs)

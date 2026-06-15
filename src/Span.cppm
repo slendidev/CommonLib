@@ -1,10 +1,5 @@
-module;
-
-#include <cstring>
-
 export module CommonLib:Span;
 
-import :InitializerList;
 import :Iterator;
 import :Option;
 import :Types;
@@ -65,76 +60,13 @@ export {
 		explicit Span(T *data, usize size)
 		    : m_data { data }
 		    , m_size { size }
-		    , m_owns { false }
 		{
 		}
-
-		explicit Span(InitializerList<T> init)
-		    : m_data { new T[init.size()] }
-		    , m_size { init.size() }
-		    , m_owns { true }
-		{
-			for (usize i { }; i < m_size; ++i)
-				m_data[i] = *(init.begin() + i);
-		}
-
-		Span(Span const &other)
-		    : m_data { other.m_owns ? new T[other.m_size] : other.m_data }
-		    , m_size { other.m_size }
-		    , m_owns { other.m_owns }
-		{
-			if (m_owns) {
-				for (usize i { }; i < m_size; ++i)
-					m_data[i] = other.m_data[i];
-			}
-		}
-
-		Span(Span &&other) noexcept
-		    : m_data { other.m_data }
-		    , m_size { other.m_size }
-		    , m_owns { other.m_owns }
-		{
-			other.m_data = nullptr;
-			other.m_size = 0;
-			other.m_owns = false;
-		}
-
-		auto operator=(Span const &other) -> Span &
-		{
-			if (this == &other)
-				return *this;
-
-			reset();
-			m_size = other.m_size;
-			m_owns = other.m_owns;
-			m_data = other.m_owns ? new T[m_size] : other.m_data;
-
-			if (m_owns) {
-				for (usize i { }; i < m_size; ++i)
-					m_data[i] = other.m_data[i];
-			}
-
-			return *this;
-		}
-
-		auto operator=(Span &&other) noexcept -> Span &
-		{
-			if (this == &other)
-				return *this;
-
-			reset();
-			m_data = other.m_data;
-			m_size = other.m_size;
-			m_owns = other.m_owns;
-
-			other.m_data = nullptr;
-			other.m_size = 0;
-			other.m_owns = false;
-
-			return *this;
-		}
-
-		~Span() { reset(); }
+		Span(Span const &) = default;
+		Span(Span &&) noexcept = default;
+		auto operator=(Span const &) -> Span & = default;
+		auto operator=(Span &&) noexcept -> Span & = default;
+		~Span() = default;
 
 		/// @brief Returns a pointer to the underlying data of the span.
 		/// @return A pointer to the first element in the span.
@@ -174,19 +106,8 @@ export {
 		}
 
 	private:
-		auto reset() -> void
-		{
-			if (m_owns)
-				delete[] m_data;
-
-			m_data = nullptr;
-			m_size = 0;
-			m_owns = false;
-		}
-
 		T *m_data { nullptr };
 		usize m_size { };
-		bool m_owns { false };
 	};
 
 	}

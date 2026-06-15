@@ -1,5 +1,12 @@
+module;
+
+#include <new>
+
 export module CommonLib:Box;
 
+import :Errors;
+import :Platform;
+import :Result;
 import :Utility;
 
 export {
@@ -8,10 +15,34 @@ export {
 	/// @brief A smart pointer that owns a heap-allocated object of type T.
 	/// @tparam T The type of the object owned by the Box.
 	template<typename T> struct Box {
-		template<typename... Args>
-		explicit Box(Args &&...args)
-		    : m_data { new T(forward<Args>(args)...) }
+		struct RawTag { };
+
+		template<typename... Args> explicit Box(Args &&...args)
 		{
+			auto result { make(forward<Args>(args)...) };
+			if (result.is_err())
+				panic_error(result.unwrap_err());
+
+			*this = move(result.unwrap());
+		}
+
+		static auto make() -> Result<Box, Errors>
+		{
+			return Result<Box, Errors>::Ok(Box(RawTag { }));
+		}
+
+		template<typename... Args>
+		static auto make(Args &&...args) -> Result<Box, Errors>
+		{
+			void *mem = ::operator new(sizeof(T), std::nothrow);
+			if (mem == nullptr)
+				return Result<Box, Errors>::Err(ErrorsV::OutOfMemory { });
+
+			T *data = new (mem) T(forward<Args>(args)...);
+
+			Box box(RawTag { });
+			box.m_data = data;
+			return Result<Box, Errors>::Ok(move(box));
 		}
 
 		~Box() { delete m_data; }
@@ -54,6 +85,8 @@ export {
 		T const *get() const { return m_data; }
 
 	private:
+		explicit Box(RawTag) { }
+
 		T *m_data = nullptr;
 	};
 
