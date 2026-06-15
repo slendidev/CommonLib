@@ -7,7 +7,6 @@ export import :Atomic;
 export import :BitArray;
 export import :BitList;
 export import :Box;
-export import :Color;
 export import :Error;
 export import :Flags;
 export import :FixedString;

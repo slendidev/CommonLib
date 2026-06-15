@@ -157,9 +157,6 @@ auto main() -> int
 	}
 	std::println("sync: {}", guarded);
 
-	std::println("color: {} {}", static_cast<unsigned>(Color::WHITE.r),
-	    static_cast<unsigned>(Color::BLACK.r));
-
 	auto filtered {
 		range(8)
 		    .filter([](int value) { return value % 2 == 0; })
