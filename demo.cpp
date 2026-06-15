@@ -180,8 +180,9 @@ auto main() -> int
 	    range(4).any([](int value) { return value == 3; }));
 
 	std::vector<int> values { 1, 2, 3 };
-	auto borrowed { borrow_iter(
-		values) }; // coud use (values.begin(), values.end()) as well
+	auto borrowed {
+		borrow_iter(values),
+	}; // coud use (values.begin(), values.end()) as well
 	if (auto first { borrowed.next() })
 		*first += 10;
 	auto doubled_values {
