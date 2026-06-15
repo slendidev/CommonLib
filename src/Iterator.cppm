@@ -18,6 +18,7 @@ export {
 	template<class Iter, class P> struct FilterIter;
 	template<class Iter> struct EnumerateIter;
 	template<DoubleEndedIterator Iter> struct ReverseIter;
+	template<class Iter> struct BorrowIter;
 
 	/// @brief A base class for iterators that provides common iterator methods
 	/// such as map, filter, collect, etc.
@@ -350,6 +351,67 @@ export {
 
 		auto next_back() { return iter.next(); }
 	};
+
+	template<class Iter> struct BorrowIter : Iterator<BorrowIter<Iter>> {
+		Iter front;
+		Iter back;
+
+		BorrowIter(Iter front, Iter back)
+		    : front { move(front) }
+		    , back { move(back) }
+		{
+		}
+
+		auto iter() { return move(*this); }
+
+		auto next()
+		{
+			using Ref = decltype(*declval<Iter &>());
+
+			if (front == back)
+				return Option<Ref> { };
+
+			auto &&value { *front };
+			++front;
+			return Option<Ref> { value };
+		}
+
+		auto next_back()
+		requires requires(Iter &iter) { --iter; }
+		{
+			using Ref = decltype(*declval<Iter &>());
+
+			if (front == back)
+				return Option<Ref> { };
+
+			--back;
+			auto &&value { *back };
+			return Option<Ref> { value };
+		}
+	};
+
+	template<class Iter> auto borrow_iter(Iter begin, Iter end)
+	{
+		return BorrowIter<Iter> { move(begin), move(end) };
+	}
+
+	template<class Container>
+	requires requires(Container &container) {
+		container.begin();
+		container.end();
+	} auto borrow_iter(Container &container)
+	{
+		return borrow_iter(container.begin(), container.end());
+	}
+
+	template<class Container>
+	requires requires(Container const &container) {
+		container.begin();
+		container.end();
+	} auto borrow_iter(Container const &container)
+	{
+		return borrow_iter(container.begin(), container.end());
+	}
 
 	template<class T>
 	concept Iterable = requires(T t) { t.iter().next(); };

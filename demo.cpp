@@ -1,4 +1,5 @@
 #include <print>
+#include <vector>
 
 import CommonLib;
 
@@ -180,6 +181,21 @@ auto main() -> int
 	        .size(),
 	    range(4).every([](int value) { return value < 4; }),
 	    range(4).any([](int value) { return value == 3; }));
+
+	std::vector<int> values { 1, 2, 3 };
+	auto borrowed { borrow_iter(
+		values) }; // coud use (values.begin(), values.end()) as well
+	if (auto first { borrowed.next() })
+		*first += 10;
+	auto doubled_values {
+		borrow_iter(values.begin(), values.end())
+		    .map([](int &value) { return value * 2; })
+		    .collect<ArrayList>(),
+	};
+	std::print("std::vector borrow:");
+	doubled_values.iter().for_each(
+	    [](int &value) { std::print(" {}", value); });
+	std::println(" first={}", values.front());
 
 	std::println("done'd");
 }
