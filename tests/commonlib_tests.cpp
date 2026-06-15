@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 
-#include <array>
 #include <initializer_list>
 #include <thread>
 #include <type_traits>

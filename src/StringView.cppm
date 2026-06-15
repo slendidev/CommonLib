@@ -1,7 +1,5 @@
 module;
 
-#include <new>
-
 export module CommonLib:StringView;
 
 import :StringOps;

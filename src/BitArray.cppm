@@ -1,7 +1,3 @@
-module;
-
-#include <stdint.h>
-
 export module CommonLib:BitArray;
 
 import :Option;

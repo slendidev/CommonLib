@@ -1,7 +1,3 @@
-module;
-
-#include <new>
-
 export module CommonLib:Variant;
 
 import :Option;

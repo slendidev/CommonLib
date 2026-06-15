@@ -5,7 +5,6 @@ import :Math;
 import :Errors;
 
 export {
-
 	namespace CL {
 
 	struct BitList {

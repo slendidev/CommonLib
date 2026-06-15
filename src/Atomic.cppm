@@ -1,4 +1,5 @@
 export module CommonLib:Atomic;
+
 export {
 	namespace CL {
 
