@@ -4,7 +4,7 @@ import :Option;
 import :Pair;
 import :Types;
 import :TypeTraits;
-import :Utility;
+import :UtilityBase;
 
 export {
 	namespace CL {
@@ -27,8 +27,7 @@ export {
 	template<class Self> struct Iterator {
 		Self &self() { return static_cast<Self &>(*this); }
 
-		template<class F>
-		auto map(F f) & = delete ("Iterator must be an rvalue");
+		template<class F> auto map(F f) & = delete;
 		/// @brief Create a new iterator that applies a function to each element
 		/// of the original iterator.
 		/// @tparam F The type of the function to apply to each element of the
@@ -45,8 +44,7 @@ export {
 		{
 			return MapIter<Self, F>(move(self()), move(f));
 		}
-		template<class P>
-		auto filter(P pred) & = delete ("Iterator must be an rvalue");
+		template<class P> auto filter(P pred) & = delete;
 		/// @brief Create a new iterator that filters the elements of the
 		/// original iterator using a predicate function.
 		/// @tparam P The type of the predicate function to use for filtering
@@ -63,7 +61,7 @@ export {
 		{
 			return FilterIter<Self, P>(move(self()), move(pred));
 		}
-		auto enumerate() & = delete ("Iterator must be an rvalue");
+		auto enumerate() & = delete;
 		/// @brief Create a new iterator that yields `(index, value)` pairs.
 		/// @return A new iterator that yields the zero-based index with each
 		/// element from the original iterator.
@@ -72,8 +70,7 @@ export {
 		/// auto indexed { range(3).enumerate() };
 		/// @endcode
 		auto enumerate() && { return EnumerateIter<Self>(move(self())); }
-		template<class F>
-		void for_each(F f) & = delete ("Iterator must be an rvalue");
+		template<class F> void for_each(F f) & = delete;
 		/// @brief Apply a function to each element of the iterator.
 		/// @tparam F The type of the function to apply to each element of the
 		/// iterator.
@@ -90,8 +87,7 @@ export {
 				f(*x);
 		}
 
-		template<class Container>
-		auto collect() & -> Container = delete ("Iterator must be an rvalue");
+		template<class Container> auto collect() & -> Container = delete;
 		/// @brief Collect the elements of the iterator into a container.
 		/// @tparam Container The type of the container to collect the elements
 		/// into. The container must have a push method that can be used to add
@@ -113,7 +109,7 @@ export {
 			return result;
 		}
 
-		auto rev() & = delete ("Iterator must be an rvalue");
+		auto rev() & = delete;
 		/// @brief Create a new iterator that iterates over the elements of the
 		/// original iterator in reverse order.
 		/// @return A new iterator that iterates over the elements of the
@@ -128,8 +124,7 @@ export {
 			return ReverseIter<Self>(move(self()));
 		}
 
-		template<class Other>
-		auto eq(Other other) & -> bool = delete ("Iterator must be an rvalue");
+		template<class Other> auto eq(Other other) & -> bool = delete;
 		/// @brief Check if the elements of the iterator are equal to the
 		/// elements of another iterator.
 		/// @tparam Other The type of the other iterator to compare with. The
@@ -159,8 +154,7 @@ export {
 			}
 		}
 
-		template<class P>
-		auto any(P pred) & -> bool = delete ("Iterator must be an rvalue");
+		template<class P> auto any(P pred) & -> bool = delete;
 		/// @brief Check if any element of the iterator satisfies a predicate
 		/// function.
 		/// @tparam P The type of the predicate function to use for checking the
@@ -178,8 +172,7 @@ export {
 			return move(self()).find_if(move(pred)).is_some();
 		}
 
-		template<class P>
-		auto every(P pred) & -> bool = delete ("Iterator must be an rvalue");
+		template<class P> auto every(P pred) & -> bool = delete;
 		/// @brief Check if every element of the iterator satisfies a predicate
 		/// function.
 		/// @tparam P The type of the predicate function to use for checking the
@@ -201,8 +194,7 @@ export {
 			return true;
 		}
 
-		template<class P>
-		auto find_if(P pred) & = delete ("Iterator must be an rvalue");
+		template<class P> auto find_if(P pred) & = delete;
 		/// @brief Find the first element of the iterator that satisfies a
 		/// predicate function.
 		/// @tparam P The type of the predicate function to use for finding the
@@ -226,8 +218,7 @@ export {
 			return decltype(self().next()) { };
 		}
 
-		template<class Value>
-		auto find(Value const &value) & = delete ("Iterator must be an rvalue");
+		template<class Value> auto find(Value const &value) & = delete;
 		/// @brief Find the first element of the iterator that is equal to a
 		/// specified value.
 		/// @tparam Value The type of the value to find in the iterator. The

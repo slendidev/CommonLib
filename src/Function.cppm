@@ -80,7 +80,7 @@ export {
 				.destroy
 				= [](void *object) { delete static_cast<Fn *>(object); },
 				.call = [](void *object, Args... args) noexcept(Noexcept) -> R {
-				    if constexpr (__is_void(R)) {
+				    if constexpr (IsVoidV<R>) {
 					    (*static_cast<Fn *>(object))(
 					        CL::forward<Args>(args)...);
 				    } else {
@@ -192,7 +192,7 @@ export {
 				= [](void *object) { delete static_cast<Fn *>(object); },
 				.call
 				= [](void const *object, Args... args) noexcept(Noexcept) -> R {
-				    if constexpr (__is_void(R)) {
+				    if constexpr (IsVoidV<R>) {
 					    (*static_cast<Fn const *>(object))(
 					        CL::forward<Args>(args)...);
 				    } else {

@@ -3,6 +3,7 @@ export module CommonLib:HashMap;
 import :ArrayList;
 import :Errors;
 import :InitializerList;
+import :Utility;
 
 export {
 	namespace CL {

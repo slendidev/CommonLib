@@ -32,5 +32,6 @@ export import :Sync;
 export import :TypeTraits;
 export import :TypeList;
 export import :Types;
+export import :UtilityBase;
 export import :Utility;
 export import :Variant;

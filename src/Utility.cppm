@@ -1,7 +1,10 @@
 export module CommonLib:Utility;
 
+import :String;
+import :StringView;
 import :TypeTraits;
 import :Types;
+export import :UtilityBase;
 
 export {
 	namespace CL {
@@ -11,17 +14,36 @@ export {
 
 	namespace detail::adl {
 
-	auto to_display_string(BaseString<char> const &) -> BaseString<char>;
+	constexpr auto hash_string(BaseStringView<char> const) -> usize;
 	auto to_display_string(BaseStringView<char> const) -> BaseString<char>;
 	auto to_display_string(char const *) -> BaseString<char>;
 
-	auto to_debug_string(BaseString<char> const &) -> BaseString<char>;
 	auto to_debug_string(BaseStringView<char> const) -> BaseString<char>;
 	auto to_debug_string(char const *) -> BaseString<char>;
 
-	auto to_hash(BaseString<char> const &) -> usize;
 	auto to_hash(BaseStringView<char> const) -> usize;
 	auto to_hash(char const *) -> usize;
+
+	template<typename T>
+	requires requires(T const &value) { value.view(); }
+	constexpr auto to_display_string(T const &value)
+	{
+		return to_display_string(value.view());
+	}
+
+	template<typename T>
+	requires requires(T const &value) { value.view(); }
+	constexpr auto to_debug_string(T const &value)
+	{
+		return to_debug_string(value.view());
+	}
+
+	template<typename T>
+	requires requires(T const &value) { value.view(); }
+	constexpr auto to_hash(T const &value) -> usize
+	{
+		return to_hash(value.view());
+	}
 
 	template<typename T>
 	requires(IsIntegralV<RemoveConstRef<T>>)
@@ -31,27 +53,6 @@ export {
 	}
 
 	}
-
-	template<typename T> T &&move(T &value) { return static_cast<T &&>(value); }
-
-	template<typename T> constexpr T &&forward(T &value) noexcept
-	{
-		return static_cast<T &&>(value);
-	}
-
-	template<typename T> constexpr T &&forward(T &&value) noexcept
-	{
-		return static_cast<T &&>(value);
-	}
-
-	template<typename T> constexpr void swap(T &a, T &b)
-	{
-		T tmp = CL::move(a);
-		a = CL::move(b);
-		b = CL::move(tmp);
-	}
-
-	template<typename T> struct InPlace { };
 
 	inline constexpr struct ToDisplayStringFn {
 		template<typename T>
@@ -80,16 +81,51 @@ export {
 		}
 	} to_hash { };
 
-	template<typename... Ts> [[gnu::always_inline]] void ignore_unused(Ts &&...)
-	{
+	}
+}
+
+export constexpr auto CL::detail::adl::hash_string(StringView const value)
+    -> usize
+{
+	usize hash { 14695981039346656037ull };
+
+	for (usize i { }; i < value.size(); ++i) {
+		hash ^= static_cast<unsigned char>(value.data()[i]);
+		hash *= 1099511628211ull;
 	}
 
-	template<typename... Ts>
-	[[gnu::always_inline]] void ignore_unused(Ts const &...)
-	{
-	}
+	return hash;
+}
 
-	template<typename... Ts> [[gnu::always_inline]] void ignore_unused() { }
+export inline auto CL::detail::adl::to_display_string(StringView const value)
+    -> String
+{
+	return String(value);
+}
 
-	}
+export inline auto CL::detail::adl::to_display_string(char const *value)
+    -> String
+{
+	return String(value);
+}
+
+export inline auto CL::detail::adl::to_debug_string(StringView const value)
+    -> String
+{
+	return String(value);
+}
+
+export inline auto CL::detail::adl::to_debug_string(char const *value) -> String
+{
+	return String(value);
+}
+
+export inline auto CL::detail::adl::to_hash(StringView const value) -> usize
+{
+	return hash_string(value);
+}
+
+export inline auto CL::detail::adl::to_hash(char const *value) -> usize
+{
+	return hash_string(StringView(value));
 }

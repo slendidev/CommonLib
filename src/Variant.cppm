@@ -1,14 +1,29 @@
+module;
+
+#include <new>
+
 export module CommonLib:Variant;
 
 import :Option;
 import :Types;
 import :TypeTraits;
-import :Utility;
+import :UtilityBase;
 
 export {
 	namespace CL {
 
 	namespace detail {
+
+	[[noreturn]] inline auto unreachable() -> void
+	{
+#if defined(_MSC_VER)
+		__assume(0);
+#elif defined(__clang__) || defined(__GNUC__)
+		__builtin_unreachable();
+#else
+		panic("unreachable");
+#endif
+	}
 
 	template<typename... Ts> union VariantStorage;
 
@@ -302,7 +317,7 @@ export {
 		template<int I = 0> auto construct_from_tag_unsafe(usize tag) -> void
 		{
 			if constexpr (I >= sizeof...(Ts)) {
-				__builtin_unreachable();
+				detail::unreachable();
 			} else {
 				if (tag == static_cast<usize>(I)) {
 					construct<I>();
@@ -344,7 +359,7 @@ export {
 				return visit_impl<I + 1>(
 				    forward<Self>(self), forward<Visitor>(visitor));
 
-			__builtin_unreachable();
+			detail::unreachable();
 		}
 
 	private:

@@ -12,7 +12,7 @@ import :Platform;
 import :Result;
 import :Span;
 import :Types;
-import :Utility;
+import :UtilityBase;
 
 export {
 	namespace CL {

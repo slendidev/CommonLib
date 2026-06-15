@@ -82,6 +82,16 @@ export {
 	template<typename T>
 	inline constexpr bool IsIntegralV = IsIntegral<T>::Value;
 
+	template<typename T> struct IsVoid {
+		static constexpr bool Value = false;
+	};
+
+	template<> struct IsVoid<void> {
+		static constexpr bool Value = true;
+	};
+
+	template<typename T> inline constexpr bool IsVoidV = IsVoid<T>::Value;
+
 	template<typename T> T &&declval();
 
 	template<typename Fn, typename... Args>
@@ -90,8 +100,19 @@ export {
 	template<typename Fn, typename... Args>
 	using InvokeResultT = InvokeResult<Fn, Args...>;
 
+	template<typename T, typename U> struct IsSame {
+		static constexpr bool Value = false;
+	};
+
+	template<typename T> struct IsSame<T, T> {
+		static constexpr bool Value = true;
+	};
+
 	template<typename T, typename U>
-	concept SameAs = __is_same(T, U);
+	inline constexpr bool IsSameV = IsSame<T, U>::Value;
+
+	template<typename T, typename U>
+	concept SameAs = IsSameV<T, U>;
 
 	template<typename T, typename... Ts>
 	concept OneOf = (SameAs<T, Ts> || ...);

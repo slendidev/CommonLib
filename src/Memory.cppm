@@ -8,7 +8,7 @@ export {
 
 	template<typename T>
 	requires(CL::IsIntegralV<CL::RemoveConstRef<T>>
-	    && __is_unsigned(CL::RemoveConstRef<T>))
+	    && CL::IsUnsignedIntegralV<CL::RemoveConstRef<T>>)
 	constexpr auto align_down(T value, T alignment) -> T
 	{
 		if (alignment == 0)
@@ -19,7 +19,7 @@ export {
 
 	template<typename T>
 	requires(CL::IsIntegralV<CL::RemoveConstRef<T>>
-	    && __is_unsigned(CL::RemoveConstRef<T>))
+	    && CL::IsUnsignedIntegralV<CL::RemoveConstRef<T>>)
 	constexpr auto align_up(T value, T alignment) -> T
 	{
 		if (alignment == 0)
@@ -35,7 +35,7 @@ export {
 
 	template<typename T>
 	requires(CL::IsIntegralV<CL::RemoveConstRef<T>>
-	    && __is_unsigned(CL::RemoveConstRef<T>))
+	    && CL::IsUnsignedIntegralV<CL::RemoveConstRef<T>>)
 	constexpr auto ranges_overlap(T a_base, T a_size, T b_base, T b_size)
 	    -> bool
 	{
@@ -57,7 +57,7 @@ export {
 
 	template<typename T>
 	requires(CL::IsIntegralV<CL::RemoveConstRef<T>>
-	    && __is_unsigned(CL::RemoveConstRef<T>))
+	    && CL::IsUnsignedIntegralV<CL::RemoveConstRef<T>>)
 	constexpr auto range_contains(
 	    T outer_base, T outer_size, T inner_base, T inner_size) -> bool
 	{
