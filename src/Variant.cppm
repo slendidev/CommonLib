@@ -338,17 +338,17 @@ export {
 		template<int I = 0, typename Self, typename Visitor>
 		static decltype(auto) visit_impl(Self &&self, Visitor &&visitor)
 		{
-			if constexpr (I >= sizeof...(Ts)) {
-				__builtin_unreachable();
-			} else {
-				if (self.m_tag == I) {
-					return forward<Visitor>(visitor)(detail::VariantGet<I,
-					    detail::VariantStorage<Ts...>>::get(self.m_data));
-				}
+			if (self.m_tag == I) {
+				return forward<Visitor>(visitor)(
+				    detail::VariantGet<I, detail::VariantStorage<Ts...>>::get(
+				        self.m_data));
+			}
 
+			if constexpr (I + 1 < sizeof...(Ts))
 				return visit_impl<I + 1>(
 				    forward<Self>(self), forward<Visitor>(visitor));
-			}
+
+			__builtin_unreachable();
 		}
 
 	private:

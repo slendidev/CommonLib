@@ -78,8 +78,8 @@ export {
 		HashMap(InitializerList<Entry> init)
 		    : HashMap()
 		{
-			for (usize i { }; i < init.size(); ++i)
-				insert_or_replace(init[i].key, init[i].value);
+			for (auto const &entry : init)
+				insert_or_replace(entry.key, entry.value);
 		}
 
 		/// @brief Get an iterator over the entries in the hash map.

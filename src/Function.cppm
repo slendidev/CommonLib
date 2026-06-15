@@ -242,6 +242,7 @@ export {
 	struct Function<R(Args...)> : detail::FunctionBase<R, false, Args...> {
 		using Base = detail::FunctionBase<R, false, Args...>;
 		using Base::Base;
+		using Base::operator=;
 
 		auto operator()(Args... args) -> R
 		{
@@ -260,6 +261,7 @@ export {
 	    : detail::FunctionBase<R, true, Args...> {
 		using Base = detail::FunctionBase<R, true, Args...>;
 		using Base::Base;
+		using Base::operator=;
 
 		auto operator()(Args... args) noexcept -> R
 		{
@@ -278,6 +280,7 @@ export {
 	    : detail::ConstFunctionBase<R, false, Args...> {
 		using Base = detail::ConstFunctionBase<R, false, Args...>;
 		using Base::Base;
+		using Base::operator=;
 
 		auto operator()(Args... args) const -> R
 		{
@@ -296,6 +299,7 @@ export {
 	    : detail::ConstFunctionBase<R, true, Args...> {
 		using Base = detail::ConstFunctionBase<R, true, Args...>;
 		using Base::Base;
+		using Base::operator=;
 
 		auto operator()(Args... args) const noexcept -> R
 		{
@@ -344,12 +348,14 @@ export {
 	struct Function<R(Args...) const &> : Function<R(Args...) const> {
 		using Base = Function<R(Args...) const>;
 		using Base::Base;
+		using Base::operator=;
 	};
 
 	template<typename R, typename... Args>
 	struct Function<R(Args...) const &&> : Function<R(Args...) const> {
 		using Base = Function<R(Args...) const>;
 		using Base::Base;
+		using Base::operator=;
 	};
 
 	template<typename R, typename... Args>
@@ -357,6 +363,7 @@ export {
 	    : Function<R(Args...) const noexcept> {
 		using Base = Function<R(Args...) const noexcept>;
 		using Base::Base;
+		using Base::operator=;
 	};
 
 	template<typename R, typename... Args>
@@ -364,6 +371,7 @@ export {
 	    : Function<R(Args...) const noexcept> {
 		using Base = Function<R(Args...) const noexcept>;
 		using Base::Base;
+		using Base::operator=;
 	};
 
 	}

@@ -1,6 +1,7 @@
 export module CommonLib:Rc;
 
 import :Types;
+import :TypeTraits;
 import :Utility;
 
 export {
@@ -11,6 +12,8 @@ export {
 	/// @tparam T The type of the value being managed by the Rc.
 	template<typename T> struct Rc {
 		template<typename... Args>
+		requires(!(sizeof...(Args) == 1
+		            && (SameAs<RemoveConstRef<Args>, Rc<T>> || ...)))
 		explicit Rc(Args &&...args)
 		    : m_ptr { new T(forward<Args>(args)...) }
 		    , m_refs { new usize(1) }

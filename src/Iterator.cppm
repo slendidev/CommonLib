@@ -330,10 +330,11 @@ export {
 			auto x { iter.next() };
 
 			if (!x)
-				return Option<Pair<usize, decltype(*x)>> { };
+				return Option<Pair<usize, RemoveReferenceT<decltype(*x)>>> { };
 
-			return Option<Pair<usize, decltype(*x)>> {
-				Pair<usize, decltype(*x)> { index++, *x },
+			auto value { *x };
+			return Option<Pair<usize, RemoveReferenceT<decltype(*x)>>> {
+				Pair<usize, RemoveReferenceT<decltype(*x)>> { index++, value },
 			};
 		}
 	};

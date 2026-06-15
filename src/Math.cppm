@@ -37,7 +37,7 @@ export {
 		return t + F(t < x);
 	}
 
-	template<typename T> auto median3(T a, T b, T c) -> T
+	template<typename T> constexpr auto median3(T a, T b, T c) -> T
 	{
 		if (a > b) {
 			auto t { a };

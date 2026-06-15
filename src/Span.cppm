@@ -75,7 +75,7 @@ export {
 		    , m_owns { true }
 		{
 			for (usize i { }; i < m_size; ++i)
-				m_data[i] = init.data()[i];
+				m_data[i] = *(init.begin() + i);
 		}
 
 		Span(Span const &other)

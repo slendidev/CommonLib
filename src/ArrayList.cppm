@@ -83,8 +83,8 @@ export {
 		ArrayList(InitializerList<T> init)
 		{
 			reserve(init.size());
-			for (usize i = 0; i < init.size(); ++i)
-				emplace(init[i]);
+			for (auto const &value : init)
+				emplace(value);
 		}
 
 		~ArrayList()

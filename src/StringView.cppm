@@ -177,7 +177,8 @@ export {
 				--start;
 			} while (start != begin && continuation(byte(*start)));
 
-			return decode_rune(start, end, rune);
+			decode_rune(start, end, rune);
+			return start;
 		}
 
 		static constexpr auto validate_utf8(CharTypeT const *data, usize size)

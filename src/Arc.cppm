@@ -2,6 +2,7 @@ export module CommonLib:Arc;
 
 import :Atomic;
 import :Types;
+import :TypeTraits;
 import :Utility;
 
 export {
@@ -12,6 +13,8 @@ export {
 	/// @tparam T The type of the object owned by the Arc.
 	template<typename T> struct Arc {
 		template<typename... Args>
+		requires(!(sizeof...(Args) == 1
+		            && (SameAs<RemoveConstRef<Args>, Arc<T>> || ...)))
 		explicit Arc(Args &&...args)
 		    : m_ptr { new T(forward<Args>(args)...) }
 		    , m_refs { new Atomic<usize>(1) }
