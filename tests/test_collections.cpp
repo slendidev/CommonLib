@@ -41,7 +41,6 @@ struct Tracker {
 		other.value = -1;
 		return *this;
 	}
-	friend auto operator==(Tracker const &, Tracker const &) -> bool = default;
 };
 
 auto reset_tracker() -> void
