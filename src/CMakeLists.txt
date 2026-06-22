@@ -33,6 +33,5 @@ target_sources(CommonLib PUBLIC FILE_SET cxx_modules TYPE CXX_MODULES FILES
 
 target_sources(CommonLib PRIVATE "${COMMONLIB_PLATFORM_SOURCE}")
 
-target_compile_options(
-  CommonLib PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILER_FLAGS}
-                    ${COMMONLIB_CXX_FLAGS}>)
+target_compile_options(CommonLib
+                       PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${CXX_COMPILER_FLAGS}>)

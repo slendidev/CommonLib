@@ -1,6 +1,6 @@
 module;
 
-#include <cstring>
+#include <string.h>
 
 export module CommonLib:Queue;
 
