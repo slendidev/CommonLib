@@ -68,6 +68,20 @@ export {
 			m_data[m_size] = '\0';
 		}
 
+		template<typename T> auto append_bytes(T const &value) -> void
+		{
+			auto const *bytes = reinterpret_cast<unsigned char const *>(&value);
+
+			for (usize i { }; i < sizeof(T) && m_size < CapacityT; ++i) {
+				if (bytes[i] == 0)
+					continue;
+
+				m_data[m_size++] = static_cast<CharTypeT>(bytes[i]);
+			}
+
+			m_data[m_size] = '\0';
+		}
+
 		auto append(BaseStringView<CharTypeT> const &string) -> void
 		{
 			usize available = CapacityT - m_size;

@@ -208,7 +208,11 @@ export {
 			usize entry_index { };
 		};
 
+#ifdef KERNEL
+		static constexpr usize InitialBucketCount = 64;
+#else
 		static constexpr usize InitialBucketCount = 8;
+#endif
 
 		using Bucket = ArrayList<Entry>;
 
@@ -303,6 +307,14 @@ export {
 			for (usize i { }; i < new_bucket_count; ++i)
 				new_buckets.emplace();
 
+#ifdef KERNEL
+			for (usize i { }; i < new_bucket_count; ++i) {
+				auto reserve_result { new_buckets[i].reserve(1) };
+				if (reserve_result.is_err())
+					panic_error(reserve_result.unwrap_err());
+			}
+#endif
+
 			for (usize i { }; i < m_buckets.size(); ++i) {
 				auto &bucket = m_buckets[i];
 
@@ -328,6 +340,14 @@ export {
 
 			for (usize i { }; i < count; ++i)
 				m_buckets.emplace();
+
+#ifdef KERNEL
+			for (usize i { }; i < count; ++i) {
+				auto reserve_result { m_buckets[i].reserve(1) };
+				if (reserve_result.is_err())
+					panic_error(reserve_result.unwrap_err());
+			}
+#endif
 		}
 
 		ArrayList<Bucket> m_buckets;
