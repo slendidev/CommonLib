@@ -6,6 +6,7 @@ export import :ArrayList;
 export import :Atomic;
 export import :BitArray;
 export import :BitList;
+export import :Bits;
 export import :Box;
 export import :Error;
 export import :Flags;

@@ -2,10 +2,25 @@ export module CommonLib:StringOps;
 
 import :Option;
 import :Span;
+import :TypeTraits;
 import :Types;
 
 export {
 	namespace CL {
+
+	constexpr auto to_lower(char value) -> char
+	{
+		return value >= 'A' && value <= 'Z'
+		    ? static_cast<char>(value + ('a' - 'A'))
+		    : value;
+	}
+
+	constexpr auto to_upper(char value) -> char
+	{
+		return value >= 'a' && value <= 'z'
+		    ? static_cast<char>(value - ('a' - 'A'))
+		    : value;
+	}
 
 	template<typename CharTypeT> struct BaseStringView;
 
@@ -156,6 +171,22 @@ export {
 
 			for (usize i { }; i < self().size(); ++i) {
 				if (self().data()[i] != other.data()[i])
+					return false;
+			}
+
+			return true;
+		}
+
+		template<StringLike Other>
+		requires(IsSameV<CharTypeT, char>)
+		constexpr auto equals_ignore_case(Other const &other) const -> bool
+		{
+			if (self().size() != other.size())
+				return false;
+
+			for (usize i { }; i < self().size(); ++i) {
+				if (CL::to_lower(self().data()[i])
+				    != CL::to_lower(other.data()[i]))
 					return false;
 			}
 
